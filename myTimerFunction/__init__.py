@@ -27,7 +27,7 @@ def connect_to_database():
     server   = "eia-server.database.windows.net"
     database = "eiaDB"
     username = os.getenv("USERNAME_EIADB")
-    password = os.getenv("PASSWORD_EIADB")  # Make sure it's set in your environment
+    password = os.getenv("PASSWORD_EIADB") 
     driver   = "ODBC Driver 17 for SQL Server"
 
     if not password:
@@ -153,30 +153,8 @@ def to_sql(df: pd.DataFrame, table_name: str, engine: sqlalchemy.engine.base.Eng
     except Exception as e:
         print(f"Unexpected error while inserting into '{table_name}': {e}")
         
-# ----------------------
-# Helper functions
-# ----------------------
 
 
-def is_requests_over_5000(start_date: str, end_date: str) -> bool:
-    """
-    Check if the number of requests to the API exceeds 5000 for a given date range.
-
-    Parameters:
-    start_date (str): The start date in 'YYYY-MM-DD' format.
-    end_date (str): The end date in 'YYYY-MM-DD' format.
-
-    Remark : 
-    There are currently 94 generators in the API, so a day corresponds to 94 lines to reach 5000 requests, we need about 53 days.
-
-    Returns:
-    bool: True if requests exceed 5000, False otherwise.
-    """
-    start = datetime.datetime.strptime(start_date, "%Y-%m-%d")
-    end = datetime.datetime.strptime(end_date, "%Y-%m-%d")
-    delta = end - start
-    return delta.days * 94 > 5000
-    
 # -------------------
 # Main program 
 # -------------------
@@ -198,7 +176,7 @@ def main(mytimer: func.TimerRequest) -> None:
 
     if db_last_period is None:
         logging.warning("Database is empty, will insert all data")
-        db_last_period = datetime.date(1900, 1, 1)  # very old default
+        db_last_period = datetime.date(2025, 9, 1)  # very old default
 
 
     if isinstance(db_last_period, str):
