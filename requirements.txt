@@ -3,3 +3,10 @@
 # azure-monitor-opentelemetry
 
 azure-functions
+requests 
+dotenv
+pandas
+sqlalchemy 
+datetime 
+pymssql
+

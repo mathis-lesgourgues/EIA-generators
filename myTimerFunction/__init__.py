@@ -3,11 +3,11 @@ import logging
 import os
 import requests
 from dotenv import load_dotenv
-import pyodbc
+import time 
 import azure.functions as func
 import pandas as pd
 from sqlalchemy import create_engine
-
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.exc import SQLAlchemyError
 import sqlalchemy
 from sqlalchemy import text
@@ -19,39 +19,46 @@ from sqlalchemy import text
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
 
-def connect_to_database():
+def connect_to_database(max_retries=5, initial_delay=5):
     """
     Creates a connection to the Azure SQL Database using SQLAlchemy.
+    Retries automatically if the database is temporarily unavailable (serverless wake-up).
     Uses environment variables for sensitive credentials.
     """
+
     server   = "eia-server.database.windows.net"
     database = "eiaDB"
     username = os.getenv("USERNAME_EIADB")
     password = os.getenv("PASSWORD_EIADB") 
-    driver   = "ODBC Driver 17 for SQL Server"
 
     if not password:
         raise ValueError("Password not found in environment variable PASSWORD_EIADB")
-    if not username : 
+    if not username:
         raise ValueError("Username not found in environment variable USERNAME_EIADB")
-    
-    connection_string = (
-        f"mssql+pyodbc://{username}:{password}@{server}/{database}"
-        f"?driver={driver.replace(' ', '+')}"
-    )
 
-    try:
-        engine = sqlalchemy.create_engine(connection_string)
-        # Test connection
-        with engine.connect() as conn:
-            conn.execute(text("""
-                SELECT 1
-            """))
-        print("Connection to database successful")
-        return engine
-    except Exception as e:
-        print("Failed to connect to database:", e)
-        raise
+    connection_string = f"mssql+pymssql://{username}:{password}@{server}/{database}"
+    engine = create_engine(connection_string)
+
+    delay = initial_delay
+    for attempt in range(1, max_retries + 1):
+        try:
+            # Test connection
+            with engine.connect() as conn:
+                conn.execute(text("SELECT 1"))
+            print("Connection to database successful")
+            return engine
+        except OperationalError as e:
+            print(f"Attempt {attempt} failed: {e}")
+            if attempt == max_retries:
+                print("Max retries reached. Could not connect to database.")
+                raise
+            else:
+                print(f"Retrying in {delay} seconds...")
+                time.sleep(delay)
+                delay *= 2  
+        except Exception as e:
+            print("Unexpected error while connecting to database:", e)
+            raise
 
 # ----------------------
 # Core functions
@@ -88,15 +95,21 @@ def retrieve_and_clean_data_from_api(API_KEY: str, start_date: str, end_date: st
 
     try:
         response = requests.get(url, params=params, timeout=15)
-        response.raise_for_status()  # raises HTTPError for bad status codes
+        response.raise_for_status() 
 
         data = response.json()
 
-        # We check if we retrive the expected structure
+        # We check if we retrieve the expected structure
         if "response" not in data or "data" not in data["response"]:
             raise ValueError("Unexpected API response structure")
 
         df = pd.DataFrame(data["response"]["data"])
+
+        if df.empty:
+                    print("Warning: API returned no data for the given date range "
+                        f"({start_date} to {end_date}).")
+                    return df
+
 
         # We drop useless columns if they exist
         cols_to_drop = ["capacity-units", "outage-units", "percentOutage-units"]
