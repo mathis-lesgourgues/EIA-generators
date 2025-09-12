@@ -3,6 +3,7 @@
 The goal of this project is to monitor the outages of US nuclear power plant. The data is updated daily.
 
 We retrieve data from the EIA API thanks to Azure Function App and then we update our Azure SQL database.
+
 ---
 
 ## 📂 Repository structure
