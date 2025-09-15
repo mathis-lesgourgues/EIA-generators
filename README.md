@@ -4,6 +4,10 @@ The goal of this project is to monitor the outages of US nuclear power plant. Th
 
 We retrieve data from the EIA API thanks to Azure Function App and then we update our Azure SQL database.
 
+![Demo](videos_example/AVERAGE_OUTAGE_IN_THE_US.gif)
+
+
+
 ---
 
 ## 📂 Repository structure
