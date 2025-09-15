@@ -4,8 +4,18 @@ The goal of this project is to monitor the outages of US nuclear power plant. Th
 
 We retrieve data from the EIA API thanks to Azure Function App and then we update our Azure SQL database.
 
+
+## Demo 
+
+Here is a demo of the dashboard we have on Power BI, this gif corresponds to the average outage in the US. 
+
 ![Demo](videos_example/AVERAGE_OUTAGE_IN_THE_US.gif)
 
+
+
+The following gif correspond to the outage per location in the US. 
+
+![Demo](videos_example/EVOLUTION_OF_OUTAGE_PER_PLANT.gif)
 
 
 ---
