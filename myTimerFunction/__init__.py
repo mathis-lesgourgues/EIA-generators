@@ -110,19 +110,27 @@ def retrieve_and_clean_data_from_api(API_KEY: str, start_date: str, end_date: st
                         f"({start_date} to {end_date}).")
                     return df
 
+        expected_columns = ["period","facility","facilityName","generator","capacity","outage","percentOutage", "capacity-units", 
+                            "outage-units", "percentOutage-units"]
 
-        # We drop useless columns if they exist
-        cols_to_drop = ["capacity-units", "outage-units", "percentOutage-units"]
-        df.drop(columns=[c for c in cols_to_drop if c in df.columns], inplace=True, errors="ignore")
+        if list(df.columns) == expected_columns : 
+        
+        
+            # We drop useless columns if they exist
+            cols_to_drop = ["capacity-units", "outage-units", "percentOutage-units"]
+            df.drop(columns=[c for c in cols_to_drop if c in df.columns], inplace=True, errors="ignore")
 
-        # Convert types
-        df["period"] = pd.to_datetime(df["period"], errors="coerce")
-        df["capacity"] = pd.to_numeric(df["capacity"], errors="coerce")
-        df["outage"] = pd.to_numeric(df["outage"], errors="coerce")
-        df["percentOutage"] = pd.to_numeric(df["percentOutage"], errors="coerce")
+            # Convert types
+            df["period"] = pd.to_datetime(df["period"], errors="coerce")
+            df["capacity"] = pd.to_numeric(df["capacity"], errors="coerce")
+            df["outage"] = pd.to_numeric(df["outage"], errors="coerce")
+            df["percentOutage"] = pd.to_numeric(df["percentOutage"], errors="coerce")
 
-        # Remove rows with missing critical values
-        df.dropna(subset=["period", "percentOutage"], inplace=True)
+            # Remove rows with missing critical values
+            df.dropna(subset=["period", "percentOutage"], inplace=True)
+        
+        else : 
+            return pd.DataFrame()
 
         return df
 
